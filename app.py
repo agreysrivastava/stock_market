@@ -16,6 +16,10 @@ def fetch_news():
 def process_data():
     return train_data.process_news()
 
+@app.route('/preprocess_news_nlp')
+def preprocess_news_nlp():
+    return train_data.preprocess_news_for_nlp()
+
 @app.route('/')
 def home():
     return 'Page to be designed later'

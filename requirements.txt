@@ -1,2 +1,7 @@
 requests==2.26.0
 beautifulsoup4
+spacy
+scikit-learn
+pandas
+matplotlib
+WordCloud
