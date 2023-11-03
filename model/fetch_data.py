@@ -6,6 +6,7 @@ from datetime import datetime
 import json
 import random
 from datetime import date, timedelta
+import re
 
 class fetch_data:
 
@@ -109,6 +110,35 @@ class fetch_data:
             return news_list
 
     @staticmethod
+    def get_today_news():
+        url = "https://economictimes.indiatimes.com/markets"
+        response = requests.get(url)
+        news_list = []
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            items = soup.find_all('li')
+            for item in items:
+                if len(item.text.strip()) > 30 and len(item.text.strip()) < 200:
+                    date_pattern = r"^\d{1,2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}"
+                    match = re.match(date_pattern, item.text.strip())
+                    if match:
+                        match_date = match.group()
+                        news_list.append(item.text[len(match_date)+7:].strip())
+            news_list = random.sample(news_list, 40)
+            with open('C:/Users/agrey/PycharmProjects/stockPredictor/static/Processed_News.tsv', 'a+', encoding='utf-8', newline='') as file:
+                writer = csv.writer(file, delimiter='\t')
+                reader = csv.reader(file, delimiter='\t')
+                last_row = None
+                for row in reader:
+                    last_row = row
+                if news_list != None and not str(last_row).startswith(str(date.today())):
+                    row = [date.today()]
+                    row.extend(news_list)
+                    writer.writerow(row)
+            file.close()
+
+
+    @staticmethod
     def get_bing_news():
         subscription_key = "your subscription key"
         search_term = "Microsoft"
@@ -120,4 +150,3 @@ class fetch_data:
         search_results = json.dumps(response.json())
         descriptions = [article["description"] for article in search_results["value"]]
         print(descriptions)
-

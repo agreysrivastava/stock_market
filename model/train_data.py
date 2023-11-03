@@ -1,11 +1,8 @@
 import spacy
 import csv
 import pandas as pd
-import numpy as np
-from wordcloud import WordCloud
-import matplotlib.pyplot as plt
+from datetime import date
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.decomposition import LatentDirichletAllocation
 from model.fetch_data import fetch_data
 from datetime import datetime, timedelta
 import os
@@ -39,7 +36,7 @@ class train_data:
     nlp = spacy.load("en_core_web_sm")
     @staticmethod
     def preprocess_text(text):
-        doc = train_data.nlp(text)
+        doc = train_data.nlp(str(text))
         tokens = [token.lemma_ for token in doc if not token.is_stop and not token.is_punct and not token.is_space]
         return " ".join(tokens)
 
@@ -52,33 +49,32 @@ class train_data:
         return top_words
 
     @staticmethod
-    def create_wordclouds(lda_model, vectorizer):
-        for i, topic_weights in enumerate(lda_model.components_):
-            wordcloud = WordCloud(width=800, height=400, background_color="white").generate_from_frequencies(
-                dict(zip(vectorizer.get_feature_names_out(), topic_weights)))
-            plt.figure(figsize=(10, 5))
-            plt.imshow(wordcloud, interpolation="bilinear")
-            plt.axis("off")
-            plt.title(f"Topic {i + 1} Word Cloud")
-            plt.show()
+    def merge_columns(row):
+        news_text = ""
+        for count in range(1, len(row)):
+            news_text += ("  "+ str(row["News Articles" + str(count)]))
+        return f"{news_text}"
+
+    @staticmethod
+    def done_today():
+        df = pd.read_csv(os.getcwd()+'/static/Final_Dataframe.csv')
+        last_date = df['Entry Date'].iloc[-1]
+        if last_date == str(date.today()):
+            print(True)
+            return True
+        return False
 
     @staticmethod
     def preprocess_news_for_nlp():
         df = pd.read_csv(os.getcwd()+'/static/Processed_News.tsv', delimiter='\t')
-        for count in range(1,40):
-            try:
-                df["News Articles"+str(count)] = df["News Articles"+str(count)].apply(train_data.preprocess_text)
-                tfidf_vectorizer = TfidfVectorizer(max_df=0.8, min_df=2, stop_words="english")
-                tfidf_matrix = tfidf_vectorizer.fit_transform(df["News Articles"+str(count)])
-                # Topic Modeling (LDA)
-                lda = LatentDirichletAllocation(n_components=5, random_state=42)
-                lda.fit(tfidf_matrix)
-                df["topic"+str(count)] = lda.transform(tfidf_matrix).argmax(axis=1)
-
-                top_words = train_data.get_top_words(lda, tfidf_vectorizer)
-                for i, words in enumerate(top_words):
-                    print(f"Topic {i + 1}: {', '.join(words)}")
-                train_data.create_wordclouds(lda, tfidf_vectorizer)
-            except :
-                print()
+        df.dropna()
+        df["News Articles"] = df.apply(train_data.merge_columns, axis=1)
+        df["News Articles"] = df["News Articles"].apply(train_data.preprocess_text)
+        tfidf_vectorizer = TfidfVectorizer(max_df=0.8, min_df=2, stop_words="english", max_features=1600)
+        tfidf_matrix = tfidf_vectorizer.fit_transform(df["News Articles"])
+        tfidf_df = pd.DataFrame(tfidf_matrix.toarray(), columns=tfidf_vectorizer.get_feature_names_out())
+        print(tfidf_df.iloc[0:10, :])
+        print(tfidf_df.shape, '  =======================  ')
+        tfidf_df['Entry Date'] = df['Entry Date']
+        tfidf_df.to_csv(os.getcwd()+'/static/Final_Dataframe.csv', index=False)
         return 'Done'
