@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="description" content="Validate, format, and compare two FIX documents.  See the differences between the objects instead of just the new lines and mixed up properties.">
+        <title>FIX Diff - The semantic FIX compare tool</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='compare_FIX_messages.css') }}" type="text/css" media="screen">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="{{ url_for('static', filename='sessionTimeout.js') }}"></script>
+    </head>
+    <body>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+            const submitBtn = document.getElementById("compare");
+
+          submitBtn.addEventListener("click", function(event) {
+            event.preventDefault()
+            const input1Data = document.getElementById("textarearef").value;
+            const input2Data = document.getElementById("textareanew").value;
+            const ignoreHeaders = document.getElementById("ignore_header").checked;
+            const showDiff = document.getElementById("show_diff_only").checked;
+
+            const data = {
+              refFix: input1Data,
+              newFix: input2Data,
+              ignore: ignoreHeaders,
+              show: showDiff
+            };
+
+            fetch("/compare_FIX_messages", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(data)
+            })
+            .then(response => {
+              if (response.ok) {
+                return response.json();
+              } else {
+                console.error("POST request failed!");
+              }
+            })
+			.then(data => {
+				const tableBody = document.querySelector('#dataTable tbody');
+                tableBody.innerHTML = '';
+                resp_table = data.table;
+                diff_list = data.diff;
+                resp_table.forEach(element => {
+                  const row = document.createElement('tr');
+                  if (diff_list.includes(element[0])) {
+                    row.style.backgroundColor = '#ff3300';
+                  }else{
+                    row.style.backgroundColor = '#00ff99';
+                  }
+                  element.forEach(cellData => {
+                      const cell = document.createElement('td');
+                      cell.textContent = cellData;
+                      row.appendChild(cell);
+                  });
+                  tableBody.appendChild(row);
+                });
+			})
+            .catch(error => {
+              console.error("Error occurred:", error);
+            });
+          });
+        });
+        </script>
+        <div id="main">
+            <div class="header">
+                <h1>FIX Difference</h1>
+                <h3>The semantic FIX compare tool</h3>
+            </div>
+            <div class="initContainer">
+                <div class="left">
+                    <textarea spellcheck="false" id="textarearef" placeholder="Enter Reference FIX Message" tabindex="1"></textarea>
+                    <pre id="errorLeft" class="error"></pre>
+                </div>
+                <div class="center">
+                    <button id="compare" tabindex="3">Compare</button>
+                    <div class="throbber-loader"></div>
+                    <div class="checkbox-container">
+                        <input class="checkbox" type="checkbox" id="ignore_header" name="ignore_header" value="Ignore Headers and Tail">
+                        <label for="ignore_header">Ignore Headers and Tail</label><br>
+                        <input class="checkbox" type="checkbox" id="show_diff_only" name="show_diff_only" value="Show diff only">
+                        <label for="show_diff_only">Show diff only</label>
+                    </div>
+                </div>
+                <div class="right">
+                    <textarea spellcheck="false" class="right" id="textareanew" placeholder="Enter New FIX Message" tabindex="2"></textarea>
+                    <pre id="errorRight" class="error"></pre>
+                </div>
+            </div>
+            <div id="result">
+                <table id="dataTable">
+                  <thead>
+                    <tr><th>Tag</th><th>Msg1 value</th><th>Msg2 Value</th><th>Tag name</th></tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>
