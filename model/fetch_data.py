@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import requests
 from flask import url_for
 from datetime import datetime
-import json
+from model.utils import utils
 import random
 from datetime import date, timedelta
 import re
@@ -31,6 +31,28 @@ class fetch_data:
                '119553': 'HDFCLIFE',
                '140033': 'BRITANNIA'
                }
+    clients_urls = {
+        'BAJAJFINSV' : 'finance-investments/bajajfinserv/BF04',
+        'POWERGRID' : 'power-generationdistribution/powergridcorporationindia/PGC',
+        'BAJFINANCE' : 'finance-nbfc/bajajfinance/BAF',
+        'ASIANPAINT': 'paintsvarnishes/asianpaints/AP31',
+        'ONGC' : 'oil-drillingexploration/oilnaturalgascorporation/ONG',
+        'BHARTIARTL': 'telecommunications-service/bhartiairtel/BA08',
+        'TITAN' : 'miscellaneous/titancompany/TI01',
+        'EICHERMOT': 'auto-lcvshcvs/eichermotors/EM',
+        'ICICIBANK': 'banks-private-sector/icicibank/ICI02',
+        'AXISBANK': 'banks-private-sector/axisbank/AB16',
+        'SBILIFE': 'lifehealth-insurance/sbilifeinsurancecompany/SLI03',
+        'KOTAKBANK': 'banks-private-sector/kotakmahindrabank/KMB',
+        'NESTLEIND': 'food-processing/nestleindia/NI',
+        'GRASIM': 'diversified/grasimindustries/GI01',
+        'TCS': 'computers-software/tataconsultancyservices/TCS',
+        'BPCL': 'refineries/bharatpetroleumcorporation/BPC',
+        'INFY': 'computers-software/infosys/IT',
+        'RELIANCE': 'refineries/relianceindustries/RI',
+        'HDFCLIFE': 'lifehealth-insurance/hdfclifeinsurancecompany/HSL01',
+        'BRITANNIA': 'food-processing/britanniaindustries/BI'
+    }
     today = datetime.today().strftime('%Y-%m-%d')
     dates = ['2019-01-01_2019-12-31','2020-01-01_2020-12-31','2021-01-01_2021-12-31','2022-01-01_2022-12-31','2023-01-01_'+today]
     @staticmethod
@@ -127,11 +149,7 @@ class fetch_data:
             news_list = random.sample(news_list, 40)
             with open('C:/Users/agrey/PycharmProjects/stockPredictor/static/Processed_News.tsv', 'a+', encoding='utf-8', newline='') as file:
                 writer = csv.writer(file, delimiter='\t')
-                reader = csv.reader(file, delimiter='\t')
-                last_row = None
-                for row in reader:
-                    last_row = row
-                if news_list != None and not str(last_row).startswith(str(date.today())):
+                if news_list != None and not utils.done_today():
                     row = [date.today()]
                     row.extend(news_list)
                     writer.writerow(row)
@@ -139,14 +157,49 @@ class fetch_data:
 
 
     @staticmethod
-    def get_bing_news():
-        subscription_key = "your subscription key"
-        search_term = "Microsoft"
-        search_url = "https://api.bing.microsoft.com/v7.0/news/search"
-        headers = {"Ocp-Apim-Subscription-Key": subscription_key}
-        params = {"q": search_term, "textDecorations": True, "textFormat": "HTML"}
-        response = requests.get(search_url, headers=headers, params=params)
-        response.raise_for_status()
-        search_results = json.dumps(response.json())
-        descriptions = [article["description"] for article in search_results["value"]]
-        print(descriptions)
+    def process_yesterday_news():
+        yesterday = datetime.now() - timedelta(days=1)
+        yesterday = yesterday.strftime('%Y-%m-%d')
+        year, mth = yesterday.split('-')[0], yesterday.split('-')[1]
+        start_date = datetime(2023, 1, 1)
+        date_diff = datetime.now() - start_date
+        start = date_diff + 44926
+        newslist = fetch_data.scrape_et_news(year, mth, start)
+        with open('C:/Users/agrey/PycharmProjects/stockPredictor/static/Processed_News.tsv', 'a+', encoding='utf-8',
+                  newline='') as file:
+            writer = csv.writer(file, delimiter='\t')
+            if newslist != None and not utils.done_today(yesterday):
+                row = [yesterday]
+                row.extend(newslist)
+                writer.writerow(row)
+        file.close()
+
+    @staticmethod
+    def get_today_price(client):
+        url = f'https://www.moneycontrol.com/india/stockpricequote/{fetch_data.clients_urls[client]}'
+        response = requests.get(url)
+        result_map = {}
+        open, high, low, volume = 0,0,0,0
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            items = soup.find_all('div', class_ = 'oview_table')
+            for item in items:
+                if item.text.strip().startswith('Open') or item.text.strip().startswith('High'):
+                    elements = item.text.strip().split('\n')
+                    for i in range(len(elements)):
+                        if elements[i] == 'Open':
+                            open = elements[i+1]
+                        if elements[i] == 'Volume':
+                            volume = elements[i+1]
+                        if elements[i] == 'High':
+                            high = elements[i+1]
+                        if elements[i] == 'Low':
+                            low = elements[i+1]
+                        print(open, high,low,volume)
+                    if open != 0 and high != 0 and low != 0 and volume != 0:
+                        break
+            result_map['open'] = open
+            result_map['high'] = high
+            result_map['low'] = low
+            result_map['volume'] = volume
+            return result_map

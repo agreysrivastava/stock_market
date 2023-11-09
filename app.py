@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from model.fetch_data import fetch_data
 from model.train_data import train_data
 from model.prediction_stock import prediction_stock
@@ -25,17 +25,25 @@ def preprocess_news_nlp():
 
 @app.route('/predict_stock', methods=['POST'])
 def predict_stock():
+    result_map = {}
     client = request.get_json().get('client')
-    if not train_data.done_today():
-        fetch_data.get_today_news()
-        train_data.preprocess_news_for_nlp()
-    result_map = prediction_stock.predict_each_price(client)
+    fetch_data.process_yesterday_news()
+    fetch_data.get_today_news()
+    train_data.preprocess_news_for_nlp()
+    result_map['yesterday_map'] = prediction_stock.predict_each_price(client, True)
+    result_map['today_map'] = prediction_stock.predict_each_price(client, False)
+    result_map['today_prices'] = fetch_data.get_today_price(client)
     return jsonify(result_map)
 
+@app.route('/today_price', methods=['POST'])
+def today_price():
+    client = request.get_json().get('client')
+    fetch_data.get_today_price(client)
+    return 'Done'
 @app.route('/')
 def home():
     print('Home')
-    return 'Page to be designed later'
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=False)

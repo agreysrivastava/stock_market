@@ -1,0 +1,127 @@
+<html>
+<body>
+<script>
+            document.addEventListener("DOMContentLoaded", function() {
+            const submitBtn = document.getElementById("predict_btn");
+
+          submitBtn.addEventListener("click", function(event) {
+            event.preventDefault()
+            const inputData = document.getElementById("companies").value;
+            const data = {
+              client: inputData,
+            };
+
+            fetch("/predict_stock", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(data)
+            })
+            .then(response => {
+              if (response.ok) {
+                return response.json();
+              } else {
+                console.error("POST request failed!");
+              }
+            })
+			.then(data => {
+				const tableBody = document.querySelector('#dataTable tbody');
+                tableBody.innerHTML = '';
+                resp_table = data.table;
+                diff_list = data.diff;
+                resp_table.forEach(element => {
+                  const row = document.createElement('tr');
+                  if (diff_list.includes(element[0])) {
+                    row.style.backgroundColor = '#ff3300';
+                  }else{
+                    row.style.backgroundColor = '#00ff99';
+                  }
+                  element.forEach(cellData => {
+                      const cell = document.createElement('td');
+                      cell.textContent = cellData;
+                      row.appendChild(cell);
+                  });
+                  tableBody.appendChild(row);
+                });
+			})
+            .catch(error => {
+              console.error("Error occurred:", error);
+            });
+          });
+        });
+        </script>
+<div>
+  <link href={{ url_for('static', filename='index.css') }} rel="stylesheet" />
+  <div class="home-container">
+    <div class="home-image">
+      <h1 class="home-text Heading">Stock Market Price Prediction</h1>
+      <form enctype="text/plain" autocomplete="on" class="home-form">
+        <select autofocus class="home-select" id="companies">
+          <option value="BAJAJFINSV">BAJAJFINSV</option>
+          <option value="POWERGRID">POWERGRID</option>
+          <option value="BAJFINANCE">BAJFINANCE</option>
+            <option value="ASIANPAINT">ASIANPAINT</option>
+            <option value="ONGC">ONGC</option>
+            <option value="BHARTIARTL">BHARTIARTL</option>
+            <option value="TITAN">TITAN</option>
+          <option value="EICHERMOT">EICHERMOT</option>
+          <option value="ICICIBANK">ICICIBANK</option>
+            <option value="AXISBANK">AXISBANK</option>
+            <option value="SBILIFE">SBILIFE</option>
+            <option value="KOTAKBANK">KOTAKBANK</option>
+            <option value="NESTLEIND">NESTLEIND</option>
+          <option value="GRASIM">GRASIM</option>
+          <option value="TCS">TCS</option>
+            <option value="BPCL">BPCL</option>
+            <option value="INFY">INFY</option>
+            <option value="RELIANCE">RELIANCE</option>
+            <option value="HDFCLIFE">HDFCLIFE</option>
+            <option value="BRITANNIA">BRITANNIA</option>
+        </select>
+        <button type="button" class="home-button button" id="predict_btn">Predict</button>
+      </form>
+      <div class="table-container">
+        <table>
+            <tr>
+                <td>  </td>
+                <td>Open Price</td>
+                <td>High Price</td>
+                <td>Low Price</td>
+                <td>Average Price</td>
+                <td>Volume</td>
+            </tr>
+            <tr>
+                <td>Yesterday's prediction</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Today's price</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Tommorow's Predictions</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+      </div>
+        <div class="result-label">
+        Accuracy of the above model is:
+    </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

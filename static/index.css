@@ -1,0 +1,80 @@
+.home-container {
+  width: 100%;
+  display: flex;
+  overflow: auto;
+  min-height: 100vh;
+  align-items: center;
+  flex-direction: column;
+}
+.home-image {
+  width: 100%;
+  height: 908px;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  background-size: cover;
+  background-image: url("/static/img.png");
+  background-position: center;
+}
+.home-text {
+  width: 1350px;
+  height: 45px;
+  text-align: center;
+    font-family: cursive;
+    color: aliceblue;
+}
+.home-form {
+  width: 100%;
+  height: 57px;
+  display: flex;
+  text-align: center;
+    font-family: cursive;
+    padding-left: 20px;
+}
+.home-select {
+  width: 175px;
+  height: 37px;
+    text-align: center;
+    font-family: cursive;
+}
+.home-button {
+  width: 159px;
+  height: 37px;
+  margin-left: 24px;
+    font-family: cursive;
+}
+
+.table-container {
+    background-color: rgba(255, 255, 255, 0.5); /* Change the last value (0.9) to set the opacity */
+    padding: 20px;
+    border-radius: 10px;
+    width: 900px;
+    margin: 0 auto;
+    height: 300px;
+    font-family: cursive;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    height: 100%;
+}
+
+td {
+    padding: 8px;
+    border: 1px solid #ddd;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+.result-label {
+
+    padding: 10px;
+    text-align: center;
+    margin-top: 20px;
+    font-weight: bold;
+    font-size: 25px;
+    font-family: cursive;
+    color: azure;
+}

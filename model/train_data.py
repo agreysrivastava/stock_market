@@ -1,7 +1,6 @@
 import spacy
 import csv
 import pandas as pd
-from datetime import date
 from sklearn.feature_extraction.text import TfidfVectorizer
 from model.fetch_data import fetch_data
 from datetime import datetime, timedelta
@@ -55,14 +54,6 @@ class train_data:
             news_text += ("  "+ str(row["News Articles" + str(count)]))
         return f"{news_text}"
 
-    @staticmethod
-    def done_today():
-        df = pd.read_csv(os.getcwd()+'/static/Final_Dataframe.csv')
-        last_date = df['Entry Date'].iloc[-1]
-        if last_date == str(date.today()):
-            print(True)
-            return True
-        return False
 
     @staticmethod
     def preprocess_news_for_nlp():
