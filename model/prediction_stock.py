@@ -41,13 +41,13 @@ class prediction_stock:
         pred_avg, acc_avg = prediction_stock.predict_stock_attribute(X, Y, sample)
         X, Y, sample = prediction_stock.load_X_Y(client, -1, search_date)
         pred_vol, acc_vol = prediction_stock.predict_stock_attribute(X, Y, sample)
-        avg_acc = (acc_vol+ acc_avg+ acc_low+ acc_high+ acc_open)/5
+        avg_acc = (acc_avg+ acc_low+ acc_high+ acc_open)/4
         response_map['open'] = pred_open
         response_map['high'] = pred_high
         response_map['low'] = pred_low
         response_map['avg'] = pred_avg
         response_map['volume'] = pred_vol
-        response_map['avg_accuracy'] = avg_acc
+        response_map['avg_accuracy'] = round(abs(avg_acc)*100, 2)
         print(response_map)
         return response_map
 

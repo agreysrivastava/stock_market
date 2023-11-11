@@ -163,12 +163,13 @@ class fetch_data:
         year, mth = yesterday.split('-')[0], yesterday.split('-')[1]
         start_date = datetime(2023, 1, 1)
         date_diff = datetime.now() - start_date
-        start = date_diff + 44926
+        start = date_diff.days + 44926
         newslist = fetch_data.scrape_et_news(year, mth, start)
         with open('C:/Users/agrey/PycharmProjects/stockPredictor/static/Processed_News.tsv', 'a+', encoding='utf-8',
                   newline='') as file:
             writer = csv.writer(file, delimiter='\t')
             if newslist != None and not utils.done_today(yesterday):
+                print('Getting yesterday news')
                 row = [yesterday]
                 row.extend(newslist)
                 writer.writerow(row)
@@ -176,6 +177,7 @@ class fetch_data:
 
     @staticmethod
     def get_today_price(client):
+        print('Getting today prices')
         url = f'https://www.moneycontrol.com/india/stockpricequote/{fetch_data.clients_urls[client]}'
         response = requests.get(url)
         result_map = {}
@@ -195,7 +197,6 @@ class fetch_data:
                             high = elements[i+1]
                         if elements[i] == 'Low':
                             low = elements[i+1]
-                        print(open, high,low,volume)
                     if open != 0 and high != 0 and low != 0 and volume != 0:
                         break
             result_map['open'] = open

@@ -10,6 +10,8 @@
             const data = {
               client: inputData,
             };
+            const client_label = document.getElementById("client_label");
+                client_label.textContent = inputData;
 
             fetch("/predict_stock", {
               method: "POST",
@@ -26,24 +28,76 @@
               }
             })
 			.then(data => {
-				const tableBody = document.querySelector('#dataTable tbody');
+				const tableBody = document.querySelector('#result_table tbody');
                 tableBody.innerHTML = '';
-                resp_table = data.table;
-                diff_list = data.diff;
-                resp_table.forEach(element => {
-                  const row = document.createElement('tr');
-                  if (diff_list.includes(element[0])) {
-                    row.style.backgroundColor = '#ff3300';
-                  }else{
-                    row.style.backgroundColor = '#00ff99';
-                  }
-                  element.forEach(cellData => {
-                      const cell = document.createElement('td');
-                      cell.textContent = cellData;
-                      row.appendChild(cell);
-                  });
-                  tableBody.appendChild(row);
-                });
+                yest_map = data.yesterday_map;
+                today_price = data.today_prices;
+                tom_pred = data.today_map;
+                var row = document.createElement('tr');
+                var cell = document.createElement('td');
+                cell.textContent = "Yesterday's prediction";
+                row.appendChild(cell);
+                cell = document.createElement('td');
+                cell.textContent = yest_map.open;
+                row.appendChild(cell);
+                cell = document.createElement('td');
+                cell.textContent = yest_map.high;
+                row.appendChild(cell);
+                cell = document.createElement('td');
+                cell.textContent = yest_map.low;
+                row.appendChild(cell);
+                cell = document.createElement('td');
+                cell.textContent = yest_map.avg;
+                row.appendChild(cell);
+                cell = document.createElement('td');
+                cell.textContent = yest_map.volume;
+                row.appendChild(cell);
+                tableBody.appendChild(row)
+
+                row = document.createElement('tr');
+                cell = document.createElement('td');
+                cell.textContent = "Today's prices";
+                row.appendChild(cell);
+                cell = document.createElement('td');
+                cell.textContent = today_price.open;
+                row.appendChild(cell);
+                cell = document.createElement('td');
+                cell.textContent = today_price.high;
+                row.appendChild(cell);
+                cell = document.createElement('td');
+                cell.textContent = today_price.low;
+                row.appendChild(cell);
+                cell = document.createElement('td');
+                cell.textContent = "--";
+                row.appendChild(cell);
+                cell = document.createElement('td');
+                cell.textContent = today_price.volume;
+                row.appendChild(cell);
+                tableBody.appendChild(row)
+
+                row = document.createElement('tr');
+                cell = document.createElement('td');
+                cell.textContent = "Tommorow's Predictions";
+                row.appendChild(cell);
+                cell = document.createElement('td');
+                cell.textContent = tom_pred.open;
+                row.appendChild(cell);
+                cell = document.createElement('td');
+                cell.textContent = tom_pred.high;
+                row.appendChild(cell);
+                cell = document.createElement('td');
+                cell.textContent = tom_pred.low;
+                row.appendChild(cell);
+                cell = document.createElement('td');
+                cell.textContent = tom_pred.avg;
+                row.appendChild(cell);
+                cell = document.createElement('td');
+                cell.textContent = tom_pred.volume;
+                row.appendChild(cell);
+                tableBody.appendChild(row)
+
+                const label = document.getElementById("result_label")
+                label.textContent = "Accuracy of the above model is: "+ tom_pred.avg_accuracy;
 			})
             .catch(error => {
               console.error("Error occurred:", error);
@@ -82,42 +136,21 @@
         <button type="button" class="home-button button" id="predict_btn">Predict</button>
       </form>
       <div class="table-container">
-        <table>
-            <tr>
-                <td>  </td>
+        <table id="result_table">
+            <thead><tr>
+                <td id="client_label">  </td>
                 <td>Open Price</td>
                 <td>High Price</td>
                 <td>Low Price</td>
                 <td>Average Price</td>
                 <td>Volume</td>
-            </tr>
-            <tr>
-                <td>Yesterday's prediction</td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>Today's price</td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>Tommorow's Predictions</td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
+            </tr></thead>
+            <tbody>
+
+            </tbody>
         </table>
       </div>
-        <div class="result-label">
+        <div class="result-label" id="result_label">
         Accuracy of the above model is:
     </div>
     </div>
